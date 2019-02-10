@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 from flask import Flask, render_template, request, redirect, url_for, jsonify, flash
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
@@ -11,11 +12,14 @@ Base.metadata.bind = engine
 DBSession = sessionmaker(bind=engine)
 session = DBSession()
 
+# Modularize code by using lots of functions and comments
+
 
 @app.route('/')
 @app.route('/catalog')
 def showCatalog():
-    return "This is the home page"
+    categories = session.query(Category)
+    return render_template('catalog.html', categories=categories)
 
 
 @app.route('/catalog/<categoryName>/')
