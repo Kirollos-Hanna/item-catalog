@@ -19,7 +19,8 @@ session = DBSession()
 @app.route('/catalog')
 def showCatalog():
     categories = session.query(Category)
-    return render_template('catalog.html', categories=categories)
+    items = session.query(Item)
+    return render_template('catalog.html', categories=categories, items=items)
 
 
 @app.route('/catalog/<categoryName>/')

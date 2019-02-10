@@ -20,6 +20,9 @@
       {% endblock %} {% block items %}
       <div class="items">
         <h2>Latest Items</h2>
+        {% for item in items %}
+        <p>{{ item.name }} - ({{ item.category.name }})</p>
+        {% endfor %}
       </div>
       {% endblock %}
     </div>
