@@ -1,0 +1,15 @@
+{% extends 'catalog.html' %} 
+{% block title %}
+{{ catName }} Movies
+{% endblock %}
+{% block items %}
+    <div class="items">
+        <p>Add Item</p>
+        <h2>{{ catName }} Items ('number' items)</h2>   
+        {% if items %}
+            {% for item in items %}
+            <p>{{ item.name }}</p>
+            {% endfor %}
+        {% endif %}
+    </div>
+{% endblock %}

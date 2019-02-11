@@ -55,11 +55,39 @@ button:focus {
   align-items: flex-start;
 }
 
+.container2 {
+  margin: 10px 12%;
+  padding: 10px;
+  background-color: #ddd;
+  border-color: #bbb;
+  border-radius: 1px;
+  border-style: solid;
+}
+
 .categories {
   border-right: 1px solid #aaa;
   padding: 10px;
 }
 
 .items {
-  padding: 10px;
+  padding-left: 10px;
+}
+
+.buttons {
+  display: flex;
+  align-items: flex-start;
+}
+
+.buttons button {
+  margin-right: 5px;
+  border-radius: 3px;
+  background-color: #000;
+  color: #fff;
+  border: none;
+}
+
+.buttons button:hover {
+  -webkit-box-shadow: 2px 3px 5px 0px rgba(112, 112, 112, 1);
+  -moz-box-shadow: 2px 3px 5px 0px rgba(112, 112, 112, 1);
+  box-shadow: 2px 3px 5px 0px rgba(112, 112, 112, 1);
 }
