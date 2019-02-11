@@ -6,7 +6,7 @@ from database_setup import Base, Category, Item, User
 
 app = Flask(__name__)
 
-engine = create_engine('sqlite:///catalogappdatabase.db')
+engine = create_engine('sqlite:///catalog.db')
 Base.metadata.bind = engine
 
 DBSession = sessionmaker(bind=engine)
@@ -26,23 +26,31 @@ def showCatalog():
 @app.route('/catalog/<categoryName>/')
 @app.route('/catalog/<categoryName>/items')
 def showCategory(categoryName):
-    return "This is the catalog for {}".format(categoryName)
+    categories = session.query(Category)
+    category = categories.filter_by(name=categoryName).one()
+
+    items = session.query(Item).filter_by(category_id=category.id)
+
+    catName = category.name[0].upper() + category.name[1:]
+
+    return render_template('items.html', categories=categories, catName=catName, items=items)
 
 
 @app.route('/catalog/<categoryName>/<itemName>')
 def showItem(categoryName, itemName):
-    return "This is {} in {}".format(itemName, categoryName)
+    item = session.query(Item).filter_by(name=itemName).one()
+    return render_template('item.html', item=item)
 
 
 @app.route('/catalog/<categoryName>/new')
 @app.route('/catalog/<categoryName>/items/new')
 def newItem(categoryName):
-    return "Create a new item here"
+    return render_template('new-item.html', categoryName=categoryName)
 
 
 @app.route('/catalog/<categoryName>/<itemName>/edit')
 def editItem(categoryName, itemName):
-    return "Edit items here"
+    return render_template('edit-item.html', categoryName=categoryName, itemName=itemName)
 
 
 @app.route('/catalog/<categoryName>/<itemName>/delete')

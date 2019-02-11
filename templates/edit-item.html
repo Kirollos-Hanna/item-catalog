@@ -1,0 +1,10 @@
+{% extends 'new-item.html' %}
+{% block itemTitle %}
+<h2>{{ itemName }} item</h2>
+{% endblock %}
+{% block action %}
+action="{{ url_for('editItem', itemName=itemName, categoryName=categoryName) }}"
+{% endblock %}
+{% block button %}
+value="Edit"
+{% endblock %}
