@@ -42,18 +42,39 @@ def showItem(categoryName, itemName):
     return render_template('item.html', item=item)
 
 
-@app.route('/catalog/<categoryName>/new')
-@app.route('/catalog/<categoryName>/items/new')
+@app.route('/catalog/<categoryName>/new', methods=['GET', 'POST'])
+@app.route('/catalog/<categoryName>/items/new', methods=['GET', 'POST'])
 def newItem(categoryName):
-    return render_template('new-item.html', categoryName=categoryName)
+    if request.method == 'POST':
+        category = session.query(Category).filter_by(
+            name=request.form['category']).one()
+        newItem = Item(name=request.form['name'],
+                       description=request.form['desc'],
+                       category_id=category.id)
+        session.add(newItem)
+        session.commit()
+        return redirect(url_for('showCategory', categoryName=categoryName))
+    else:
+        return render_template('new-item.html', categoryName=categoryName)
 
 
-@app.route('/catalog/<categoryName>/<itemName>/edit')
+@app.route('/catalog/<categoryName>/<itemName>/edit', methods=['GET', 'POST'])
 def editItem(categoryName, itemName):
-    return render_template('edit-item.html', categoryName=categoryName, itemName=itemName)
+    item = session.query(Item).filter_by(name=itemName).one()
+    if request.method == 'POST':
+        category = session.query(Category).filter_by(
+            name=request.form['category']).one()
+        item.name = request.form['name']
+        item.description = request.form['desc']
+        item.category_id = category.id
+        session.add(item)
+        session.commit()
+        return redirect(url_for('showItem', categoryName=category.name, itemName=item.name))
+    else:
+        return render_template('edit-item.html', categoryName=categoryName, itemName=itemName)
 
 
-@app.route('/catalog/<categoryName>/<itemName>/delete')
+@app.route('/catalog/<categoryName>/<itemName>/delete', methods=['GET', 'POST'])
 def deleteItem(categoryName, itemName):
     return render_template('delete-item.html', categoryName=categoryName, itemName=itemName)
 
