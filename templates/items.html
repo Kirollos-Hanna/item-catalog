@@ -1,14 +1,14 @@
 {% extends 'catalog.html' %} 
 {% block title %}
-{{ catName }} Movies
+{{ categoryName }} Movies
 {% endblock %}
 {% block items %}
     <div class="items">
-        <p>Add Item</p>
-        <h2>{{ catName }} Items ('number' items)</h2>   
+        <a href="{{ url_for('newItem', categoryName=categoryName) }}"><p>Add Item</p></a>
+        <h2>{{ categoryName }} Items ({{ itemsLength }} items)</h2>   
         {% if items %}
             {% for item in items %}
-            <p>{{ item.name }}</p>
+            <p><a href="{{ url_for('showItem', categoryName=item.category.name, itemName=item.name) }}">{{ item.name }}</a></p>
             {% endfor %}
         {% endif %}
     </div>

@@ -30,10 +30,10 @@ def showCategory(categoryName):
     category = categories.filter_by(name=categoryName).one()
 
     items = session.query(Item).filter_by(category_id=category.id)
+    itemsList = [item for item in items]
+    # catName = category.name[0].upper() + category.name[1:]
 
-    catName = category.name[0].upper() + category.name[1:]
-
-    return render_template('items.html', categories=categories, catName=catName, items=items)
+    return render_template('items.html', categories=categories, categoryName=categoryName, items=itemsList, itemsLength=len(itemsList))
 
 
 @app.route('/catalog/<categoryName>/<itemName>')
