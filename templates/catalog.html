@@ -14,14 +14,14 @@
       <div class="categories">
         <h2>Categories</h2>
         {% for cat in categories %}
-        <p>{{ cat.name }}</p>
+        <p><a href="{{ url_for('showCategory', categoryName=cat.name) }}">{{ cat.name }}</a></p>
         {% endfor %}
       </div>
       {% endblock %} {% block items %}
       <div class="items">
         <h2>Latest Items</h2>
         {% for item in items %}
-        <p>{{ item.name }} - ({{ item.category.name }})</p>
+        <p><a href="{{ url_for('showItem', categoryName=item.category.name, itemName=item.name) }}">{{ item.name }}</a> - ({{ item.category.name }})</p>
         {% endfor %}
       </div>
       {% endblock %}

@@ -55,7 +55,7 @@ def editItem(categoryName, itemName):
 
 @app.route('/catalog/<categoryName>/<itemName>/delete')
 def deleteItem(categoryName, itemName):
-    return "Delete items here"
+    return render_template('delete-item.html', categoryName=categoryName, itemName=itemName)
 
 
 @app.route('/catalog.json')

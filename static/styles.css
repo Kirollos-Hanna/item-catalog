@@ -91,3 +91,12 @@ button:focus {
   -moz-box-shadow: 2px 3px 5px 0px rgba(112, 112, 112, 1);
   box-shadow: 2px 3px 5px 0px rgba(112, 112, 112, 1);
 }
+
+.title {
+  text-decoration: none;
+  color: #fff;
+}
+
+.title:visited {
+  color: #fff;
+}

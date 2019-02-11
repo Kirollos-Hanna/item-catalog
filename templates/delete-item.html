@@ -1,6 +1,6 @@
 <html>
     <head>
-        <title>Item</title>
+        <title>Delete Item</title>
         <link
             rel="stylesheet"
             type="text/css"
@@ -10,12 +10,13 @@
     <body>
         {% include 'nav.html' %}
         <div class="container2">
-            <h2>{{ item.name }}</h2>
-            <p>Description: {{ item.description }}</p>
-            <div class="buttons">
-                <button>Edit</button>
-                <button>Delete</button>
-            </div>
+            <h2>Delete {{ itemName }}?</h2>
+            <form 
+                action="{{ url_for('newItem', categoryName=categoryName) }}"
+                method="POST"
+            >
+                <input type="submit" value="Yes"/>
+            </form>
         </div>
     </body>
 </html>
