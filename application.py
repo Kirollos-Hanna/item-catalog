@@ -87,7 +87,13 @@ def deleteItem(categoryName, itemName):
 
 @app.route('/catalog.json')
 def catalogJSON():
-    return "The JSON goes here"
+    categories = session.query(Category)
+    items = session.query(Item)
+
+    categoriesJSON = [category.serialize for category in categories]
+    itemsJSON = [item.serialize for item in items]
+
+    return jsonify(Category=categoriesJSON, Items=itemsJSON)
 
 
 if __name__ == '__main__':
