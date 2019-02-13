@@ -1,6 +1,10 @@
 <nav class="flex">
   <h1><a class="title" href="{{ url_for('showCatalog') }}">Catalog App</a></h1>
   <div>
+    {% if hasLogin %}
+    <a href="{{ url_for('gdisconnect') }}"><button>Logout</button></a>
+    {% else %}
     <a href="{{ url_for('showLogin') }}"><button>Login</button></a>
+    {% endif %}
   </div>
 </nav>

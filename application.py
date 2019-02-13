@@ -10,6 +10,7 @@ import json
 import requests
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
+from sqlalchemy.orm.exc import NoResultFound
 from database_setup import Base, Category, Item, User
 
 app = Flask(__name__)
@@ -49,7 +50,8 @@ def getUserID(email):
 def showCatalog():
     categories = session.query(Category)
     items = session.query(Item)
-    return render_template('catalog.html', categories=categories, items=items)
+    print(login_session)
+    return render_template('catalog.html', categories=categories, items=items, hasLogin='email' in login_session)
 
 
 @app.route('/catalog/<categoryName>/')
@@ -62,18 +64,24 @@ def showCategory(categoryName):
     itemsList = [item for item in items]
     # catName = category.name[0].upper() + category.name[1:]
 
-    return render_template('items.html', categories=categories, categoryName=categoryName, items=itemsList, itemsLength=len(itemsList))
+    return render_template('items.html', categories=categories, categoryName=categoryName, items=itemsList, itemsLength=len(itemsList), hasLogin='email' in login_session)
 
 
 @app.route('/catalog/<categoryName>/<itemName>')
 def showItem(categoryName, itemName):
-    item = session.query(Item).filter_by(name=itemName).one()
+    # itemName = itemName[0].upper + itemName[1:]
+    print(itemName)
+    try:
+        item = session.query(Item).filter_by(name=itemName).one()
+    except:
+        return redirect('/')
+
     user = getUserInfo(item.user_id)
-    
-    if 'email' not in login_session or login_session['email'] == user.email:
-        return render_template('item.html', item=item)
+    print(user.email, login_session['email'])
+    if 'email' not in login_session or login_session['email'] != user.email:
+        return render_template('public-item.html', item=item, hasLogin='email' in login_session)
     else:
-        return render_template('public-item.html', item=item)
+        return render_template('item.html', item=item, hasLogin='email' in login_session)
 
 
 
@@ -93,7 +101,7 @@ def newItem(categoryName):
         session.commit()
         return redirect(url_for('showCategory', categoryName=categoryName))
     else:
-        return render_template('new-item.html', categoryName=categoryName)
+        return render_template('new-item.html', categoryName=categoryName, hasLogin='email' in login_session)
 
 
 @app.route('/catalog/<categoryName>/<itemName>/edit', methods=['GET', 'POST'])
@@ -103,7 +111,7 @@ def editItem(categoryName, itemName):
     
     item = session.query(Item).filter_by(name=itemName).one()
     user = getUserInfo(item.user_id)
-    if 'email' not in login_session or login_session['email'] == user.email:
+    if 'email' not in login_session or login_session['email'] != user.email:
         return redirect('/')
 
     if request.method == 'POST':
@@ -116,7 +124,7 @@ def editItem(categoryName, itemName):
         session.commit()
         return redirect(url_for('showItem', categoryName=category.name, itemName=item.name))
     else:
-        return render_template('edit-item.html', categoryName=categoryName, itemName=itemName)
+        return render_template('edit-item.html', categoryName=categoryName, itemName=itemName, hasLogin='email' in login_session)
 
 
 @app.route('/catalog/<categoryName>/<itemName>/delete', methods=['GET', 'POST'])
@@ -126,7 +134,7 @@ def deleteItem(categoryName, itemName):
 
     item = session.query(Item).filter_by(name=itemName).one()
     user = getUserInfo(item.user_id)
-    if 'email' not in login_session or login_session['email'] == user.email:
+    if 'email' not in login_session or login_session['email'] != user.email:
         return redirect('/')
     
     if request.method == 'POST':
@@ -134,7 +142,7 @@ def deleteItem(categoryName, itemName):
         session.commit()
         return redirect(url_for('showCatalog'))
     else:
-        return render_template('delete-item.html', categoryName=categoryName, itemName=itemName)
+        return render_template('delete-item.html', categoryName=categoryName, itemName=itemName, hasLogin='email' in login_session)
 
 
 @app.route('/catalog.json')
