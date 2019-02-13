@@ -1,48 +1,53 @@
 <html>
-    <head>
-        <title>{% block title %}new Item{% endblock %}</title>
-        <link
-            rel="stylesheet"
-            type="text/css"
-            href="{{ url_for('static', filename='styles.css') }}"
-        />
-    </head>
-    <body>
-        {% include 'nav.html' %}
-        <div class="container2">
-            {% block itemTitle %}
-            <h2>New Item</h2>
-            {% endblock %}
-            <form 
-                {% block action %}
-                action="{{ url_for('newItem', categoryName=categoryName) }}"
-                {% endblock %} 
-                method="POST"
-            >
-                <label for="name">Name:</label>
-                <input type="text" name="name" placeholder="Name" />
-                <br><br>
-                <label for="desc">Description:</label>
-                <textarea
-                    name="desc"
-                    cols="30"
-                    rows="5"
-                    placeholder="Description"
-                ></textarea>
-                <br><br>
-                <label for="category">Category:</label>
-                <select name="category">
-                    <option value="romance">Romance</option>
-                    <option value="thriller">Thriller</option>
-                    <option value="action">Action</option>
-                    <option value="comedy">Comedy</option>
-                    <option value="horror">Horror</option>
-                    <option value="drama">Drama</option>
-                    <option value="crime">Crime</option>
-                </select>
-                <br><br>
-                <input type="submit" {% block button %}value="Submit" {% endblock %}/>
-            </form>
-        </div>
-    </body>
+  <head>
+    <title>{% block title %}new Item{% endblock %}</title>
+    <link
+      rel="stylesheet"
+      type="text/css"
+      href="{{ url_for('static', filename='styles.css') }}"
+    />
+  </head>
+  <body>
+    {% include 'nav.html' %}
+    <div class="container2">
+      {% block itemTitle %}
+      <h2>New Item</h2>
+      {% endblock %}
+      <form
+        {%
+        block
+        action
+        %}
+        action="{{ url_for('newItem', categoryName=categoryName) }}"
+        {%
+        endblock
+        %}
+        method="POST"
+      >
+        <label for="name">Name:</label>
+        <input type="text" name="name" placeholder="Name" />
+        <br /><br />
+        <label for="desc">Description:</label>
+        <textarea
+          name="desc"
+          cols="30"
+          rows="5"
+          placeholder="Description"
+        ></textarea>
+        <br /><br />
+        <label for="category">Category:</label>
+        <select name="category">
+          <option value="romance">Romance</option>
+          <option value="thriller">Thriller</option>
+          <option value="action">Action</option>
+          <option value="comedy">Comedy</option>
+          <option value="horror">Horror</option>
+          <option value="drama">Drama</option>
+          <option value="crime">Crime</option>
+        </select>
+        <br /><br />
+        <input type="submit" {% block button %}value="Submit" {% endblock %} />
+      </form>
+    </div>
+  </body>
 </html>
