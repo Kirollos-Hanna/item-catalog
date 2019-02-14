@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-from flask import Flask, render_template, request, redirect, url_for, jsonify, flash, make_response
+from flask import Flask, render_template, request, redirect, url_for, jsonify, make_response
 from flask import session as login_session
 import random
 import string
@@ -228,7 +228,7 @@ def gconnect():
     output += '<img src="'
     output += login_session['picture']
     output += '" style="width: 300px; height: 300px; border-radius: 150px; -webkit-border-radius: 150px; -moz-border-radius: 150px;"> '
-    flash("you are now logged in")
+    
     return output
 
 
@@ -330,7 +330,6 @@ def fbconnect():
     output += login_session['picture']
     output += ' " style = "width: 300px; height: 300px;border-radius: 150px;-webkit-border-radius: 150px;-moz-border-radius: 150px;"> '
 
-    flash("Now logged in as %s" % login_session['username'])
     return output
 
 @app.route('/fbdisconnect')
@@ -351,16 +350,8 @@ def disconnect():
     if 'provider' in login_session:
         if login_session['provider'] == 'google':
             gdisconnect()
-            # del login_session['gplus_id']
-            # del login_session['credentials']
         if login_session['provider'] == 'facebook':
             fbdisconnect()
-            # del login_session['facebook_id']
-        # del login_session['username']
-        # del login_session['email']
-        # del login_session['picture']
-        # del login_session['user_id']
-        flash("You have successfully been logged out.")
         return redirect(url_for('showCatalog'))
 
 if __name__ == '__main__':
