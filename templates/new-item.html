@@ -13,41 +13,58 @@
       {% block itemTitle %}
       <h2>New Item</h2>
       {% endblock %}
-      <form
-        {%
-        block
-        action
-        %}
-        action="{{ url_for('newItem', categoryName=categoryName) }}"
-        {%
-        endblock
-        %}
-        method="POST"
-      >
-        <label for="name">Name:</label>
-        <input type="text" name="name" placeholder="Name" />
-        <br /><br />
-        <label for="desc">Description:</label>
-        <textarea
-          name="desc"
-          cols="30"
-          rows="5"
-          placeholder="Description"
-        ></textarea>
-        <br /><br />
-        <label for="category">Category:</label>
-        <select name="category">
-          <option value="romance">Romance</option>
-          <option value="thriller">Thriller</option>
-          <option value="action">Action</option>
-          <option value="comedy">Comedy</option>
-          <option value="horror">Horror</option>
-          <option value="drama">Drama</option>
-          <option value="crime">Crime</option>
-        </select>
-        <br /><br />
-        <input type="submit" {% block button %}value="Submit" {% endblock %} />
-      </form>
+      <div>
+        <form
+          {%
+          block
+          action
+          %}
+          action="{{ url_for('newItem', categoryName=categoryName) }}"
+          {%
+          endblock
+          %}
+          method="POST"
+          class="input-form center"
+        >
+          <label for="name">Name:</label>
+          <input
+            type="text"
+            name="name"
+            placeholder="Enter a name for your item"
+            required
+          />
+          <br /><br />
+          <label for="desc">Description:</label>
+          <textarea
+            name="desc"
+            cols="30"
+            rows="5"
+            placeholder="Write your description"
+          ></textarea>
+          <br /><br />
+          <label for="category">Category:</label>
+          <select name="category">
+            <option value="romance" {% if categoryName == 'romance' %} selected="selected"{% endif %}>Romance</option>
+            <option value="thriller" {% if categoryName == 'thriller' %} selected="selected"{% endif %}>Thriller</option>
+            <option value="action" {% if categoryName == 'action' %} selected="selected"{% endif %}>Action</option>
+            <option value="comedy" {% if categoryName == 'comedy' %} selected="selected"{% endif %}>Comedy</option>
+            <option value="horror" {% if categoryName == 'horror' %} selected="selected"{% endif %}>Horror</option>
+            <option value="drama" {% if categoryName == 'drama' %} selected="selected"{% endif %}>Drama</option>
+            <option value="crime" {% if categoryName == 'crime' %} selected="selected"{% endif %}>Crime</option>
+          </select>
+          <br /><br />
+          <input
+            type="submit"
+            {%
+            block
+            button
+            %}value="Submit"
+            {%
+            endblock
+            %}
+          />
+        </form>
+      </div>
     </div>
   </body>
 </html>

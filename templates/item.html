@@ -15,11 +15,11 @@
       <div class="buttons">
         <a
           href="{{ url_for('editItem', categoryName=item.category.name, itemName=item.name, ) }}"
-          ><button>Edit</button></a
+          ><button class="option-btn">Edit</button></a
         >
         <a
           href="{{ url_for('deleteItem', categoryName=item.category.name, itemName=item.name, ) }}"
-          ><button>Delete</button></a
+          ><button class="option-btn">Delete</button></a
         >
       </div>
     </div>
