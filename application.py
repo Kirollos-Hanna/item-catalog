@@ -113,6 +113,23 @@ def isPostRequest():
     """
     return request.method == 'POST'
 
+
+def makeResponse(responseString, responseCode):
+    """
+    makeResponse returns a response object.
+
+    makeResponse takes a string and code as parameters and formulates a response object that gets returned to the client.
+    args:
+    responseString - a string that shows a helpful message to the client.
+    responseCode - an integer that specifies the type of message that is being sent.
+
+    returns:
+    The response object with the string and code of the input arguments.
+    """
+    response = make_response(json.dumps(responseString), responseCode)
+    response.headers['Content-Type'] = 'application/json'
+    return response
+
 def checkUserRequest():
     """
     checkUserRequest returns a 401 response if the token that the client sent to the server doesn't match the token that the server sent to the client.
@@ -124,9 +141,9 @@ def checkUserRequest():
     Nothing otherwise.
     """
     if request.args.get('state') != login_session['state']:
-        response = make_response(json.dumps('Invalid state parameter'), 401)
-        response.headers['Content-Type'] = 'application/json'
-        return response
+        return makeResponse('Invalid state parameter', 401)
+
+
 
 @app.route('/')
 @app.route('/catalog')
@@ -160,10 +177,11 @@ def showItem(categoryName, itemName):
         return redirect('/')
 
     user = getUserInfo(item.user_id)
+    picture = pictureExists()
     if notLoggedIn() or login_session['email'] != user.email:
-        return render_template('public-item.html', item=item, hasLogin='email' in login_session)
+        return render_template('public-item.html', item=item, hasLogin='email' in login_session, picture=picture)
     else:
-        return render_template('item.html', item=item, hasLogin='email' in login_session, picture=login_session['picture'])
+        return render_template('item.html', item=item, hasLogin='email' in login_session, picture=picture)
 
 
 
@@ -254,42 +272,36 @@ def gconnect():
     checkUserRequest()
 
     code = request.data
+
     try:
         oauth_flow = flow_from_clientsecrets('client_secrets.json', scope='')
         oauth_flow.redirect_uri = 'postmessage'
         credentials = oauth_flow.step2_exchange(code)
     except FlowExchangeError:
-        response = make_response(json.dumps(
-            'Failed to upgrade the authorization code.'), 401)
-        response.headers['Content-Type'] = 'application/json'
-        return response
+        return makeResponse('Failed to upgrade the authorization code.', 401)
+
     access_token = credentials.access_token
     url = ('https://www.googleapis.com/oauth2/v1/tokeninfo?access_token=%s' %
            access_token)
     h = httplib2.Http()
     result = json.loads(h.request(url, 'GET')[1])
+
     if result.get('error') is not None:
-        response = make_response(json.dumps(result.get('error')), 500)
-        response.headers['Content-Type'] = 'application/json'
-        return response
+        return makeResponse(result.get('error'), 500)
+
     gplus_id = credentials.id_token['sub']
+
     if result['user_id'] != gplus_id:
-        response = make_response(json.dumps(
-            "Token's user ID doesn't match given user ID."), 401)
-        response.headers['Content-Type'] = 'application/json'
-        return response
+        return makeResponse("Token's user ID doesn't match given user ID.", 401)
+
     if result['issued_to'] != CLIENT_ID:
-        response = make_response(json.dumps(
-            "Token's client ID doesn't match app's."), 401)
-        print("Token's client ID does not mathc app's.")
-        response.headers['Content-Type'] = 'application/json'
-        return response
+        return makeResponse("Token's client ID doesn't match app's.", 401)
+
     stored_credentials = login_session.get('credentials')
     stored_gplus_id = login_session.get('gplus_id')
+
     if stored_credentials is not None and gplus_id == stored_gplus_id:
-        response = make_response(json.dumps(
-            'Current user is already connected.'), 200)
-        response.headers['Content-Type'] = 'application/json'
+        return makeResponse('Current user is already connected.', 200)
 
     login_session['provider'] = 'google'
     login_session['credentials'] = credentials.access_token
@@ -399,10 +411,7 @@ def fbdisconnect():
 def gdisconnect():
     credentials = login_session.get('credentials')
     if credentials is None:
-        response = make_response(json.dumps(
-            'Current user not connected.'), 401)
-        response.headers['Content-Type'] = 'application/json'
-        return response
+        return makeResponse('Current user not connected.', 401)
 
     access_token = credentials
     url = 'https://accounts.google.com/o/oauth2/revoke?token=%s' % access_token
@@ -417,14 +426,9 @@ def gdisconnect():
         del login_session['picture']
         del login_session['provider']
 
-        response = make_response(json.dumps('Successfully disconnected.'), 200)
-        response.headers['Content-Type'] = 'application/json'
-        return response
+        return makeResponse('Successfully disconnected.', 200)
     else:
-        response = make_response(json.dumps(
-            'Failed to revoke token for giver user.'), 400)
-        response.headers['Content-Type'] = 'application/json'
-        return response
+        return makeResponse('Failed to revoke token for giver user.', 400)
 
 @app.route('/disconnect')
 def disconnect():
