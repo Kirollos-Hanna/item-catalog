@@ -2,6 +2,7 @@
   <h1><a class="title" href="{{ url_for('showCatalog') }}">Catalog App</a></h1>
   <div>
     {% if hasLogin %}
+    <img class="profile-pic" src="{{ picture }}" alt="Profile picture" />
     <a href="{{ url_for('disconnect') }}"><button>Logout</button></a>
     {% else %}
     <a href="{{ url_for('showLogin') }}"><button>Login</button></a>

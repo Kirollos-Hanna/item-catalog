@@ -50,8 +50,12 @@ def getUserID(email):
 def showCatalog():
     categories = session.query(Category)
     items = session.query(Item)
-    print(login_session)
-    return render_template('catalog.html', categories=categories, items=items, hasLogin='email' in login_session)
+    
+    picture = ''
+    if 'picture' in login_session:
+        picture = login_session['picture']
+
+    return render_template('catalog.html', categories=categories, items=items, hasLogin='email' in login_session, picture=picture)
 
 
 @app.route('/catalog/<categoryName>/')
@@ -62,15 +66,15 @@ def showCategory(categoryName):
 
     items = session.query(Item).filter_by(category_id=category.id)
     itemsList = [item for item in items]
-    # catName = category.name[0].upper() + category.name[1:]
+    picture = ''
+    if 'picture' in login_session:
+        picture = login_session['picture']
 
-    return render_template('items.html', categories=categories, categoryName=categoryName, items=itemsList, itemsLength=len(itemsList), hasLogin='email' in login_session)
+    return render_template('items.html', categories=categories, categoryName=categoryName, items=itemsList, itemsLength=len(itemsList), hasLogin='email' in login_session, picture=picture)
 
 
 @app.route('/catalog/<categoryName>/<itemName>')
 def showItem(categoryName, itemName):
-    # itemName = itemName[0].upper + itemName[1:]
-    print(itemName)
     try:
         item = session.query(Item).filter_by(name=itemName).one()
     except:
@@ -80,7 +84,7 @@ def showItem(categoryName, itemName):
     if 'email' not in login_session or login_session['email'] != user.email:
         return render_template('public-item.html', item=item, hasLogin='email' in login_session)
     else:
-        return render_template('item.html', item=item, hasLogin='email' in login_session)
+        return render_template('item.html', item=item, hasLogin='email' in login_session, picture=login_session['picture'])
 
 
 
@@ -100,7 +104,7 @@ def newItem(categoryName):
         session.commit()
         return redirect(url_for('showCategory', categoryName=categoryName))
     else:
-        return render_template('new-item.html', categoryName=categoryName, hasLogin='email' in login_session)
+        return render_template('new-item.html', categoryName=categoryName, hasLogin='email' in login_session, picture=login_session['picture'])
 
 
 @app.route('/catalog/<categoryName>/<itemName>/edit', methods=['GET', 'POST'])
@@ -123,7 +127,7 @@ def editItem(categoryName, itemName):
         session.commit()
         return redirect(url_for('showItem', categoryName=category.name, itemName=item.name))
     else:
-        return render_template('edit-item.html', categoryName=categoryName, itemName=itemName, hasLogin='email' in login_session)
+        return render_template('edit-item.html', categoryName=categoryName, itemName=itemName, hasLogin='email' in login_session, picture=login_session['picture'])
 
 
 @app.route('/catalog/<categoryName>/<itemName>/delete', methods=['GET', 'POST'])
@@ -141,7 +145,7 @@ def deleteItem(categoryName, itemName):
         session.commit()
         return redirect(url_for('showCatalog'))
     else:
-        return render_template('delete-item.html', categoryName=categoryName, itemName=itemName, hasLogin='email' in login_session)
+        return render_template('delete-item.html', categoryName=categoryName, itemName=itemName, hasLogin='email' in login_session, picture=login_session['picture'])
 
 
 @app.route('/catalog.json')
@@ -157,10 +161,13 @@ def catalogJSON():
 
 @app.route('/login')
 def showLogin():
-    state = ''.join(random.choice(string.ascii_uppercase + string.digits)
-                    for x in xrange(32))
-    login_session['state'] = state
-    return render_template('login.html', STATE=state)
+    if 'email' not in login_session:
+        state = ''.join(random.choice(string.ascii_uppercase + string.digits)
+                        for x in xrange(32))
+        login_session['state'] = state
+        return render_template('login.html', STATE=state)
+    else:
+        return redirect('/')
 
 
 @app.route('/gconnect', methods=['POST'])
@@ -249,9 +256,10 @@ def gdisconnect():
     if result['status'] == '200':
         del login_session['credentials']
         del login_session['gplus_id']
-        # del login_session['username']
+        del login_session['user_id']
         del login_session['email']
         del login_session['picture']
+        del login_session['provider']
 
         response = make_response(json.dumps('Successfully disconnected.'), 200)
         response.headers['Content-Type'] = 'application/json'
@@ -269,7 +277,6 @@ def fbconnect():
         response.headers['Content-Type'] = 'application/json'
         return response
     access_token = request.data
-    print("access token received %s " % access_token)
 
 
     app_id = json.loads(open('fb_client_secrets.json', 'r').read())[
@@ -296,11 +303,8 @@ def fbconnect():
     url = 'https://graph.facebook.com/v2.8/me?access_token=%s&fields=name,id,email' % token
     h = httplib2.Http()
     result = h.request(url, 'GET')[1]
-    # print "url sent for API access:%s"% url
-    # print "API JSON result: %s" % result
     data = json.loads(result)
     login_session['provider'] = 'facebook'
-    login_session['username'] = data["name"]
     login_session['email'] = data["email"]
     login_session['facebook_id'] = data["id"]
 
@@ -323,7 +327,6 @@ def fbconnect():
 
     output = ''
     output += '<h1>Welcome, '
-    output += login_session['username']
 
     output += '!</h1>'
     output += '<img src="'
@@ -338,11 +341,11 @@ def fbdisconnect():
     url = 'https://graph.facebook.com/%s/permissions' % facebook_id 
     h = httplib2.Http()
     result = h.request(url, 'DELETE')[1]
-    del login_session['username']
     del login_session['email']
     del login_session['picture']
     del login_session['user_id']
     del login_session['facebook_id']
+    del login_session['provider']
     return "you have been logged out"
 
 @app.route('/disconnect')
@@ -350,7 +353,7 @@ def disconnect():
     if 'provider' in login_session:
         if login_session['provider'] == 'google':
             gdisconnect()
-        if login_session['provider'] == 'facebook':
+        elif login_session['provider'] == 'facebook':
             fbdisconnect()
         return redirect(url_for('showCatalog'))
 

@@ -64,6 +64,14 @@ button:focus {
   border-style: solid;
 }
 
+.login-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 400px;
+}
+
 .categories {
   border-right: 1px solid #aaa;
   padding: 10px;
@@ -103,7 +111,6 @@ button:focus {
 
 .center {
   margin: 0 auto;
-  padding: auto;
 }
 
 .input-form {
@@ -147,4 +154,10 @@ input[type="submit"]:hover,
 .option-btn:hover,
 .option-btn:hover {
   box-shadow: 0 0 9px #000;
+}
+
+.profile-pic {
+  max-height: 50px;
+  max-width: 50px;
+  border-radius: 50px;
 }

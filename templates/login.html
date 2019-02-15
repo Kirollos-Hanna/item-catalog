@@ -1,45 +1,46 @@
 <!DOCTYPE html>
 <html>
   <head>
-    <!--LOAD PRE-REQUISITES FOR GOOGLE SIGN IN -->
+    <title>Login</title>
     <script src="//ajax.googleapis.com/ajax/libs/jquery/1.8.2/jquery.min.js"></script>
 
     <script src="//apis.google.com/js/platform.js?onload=start"></script>
 
-    <!-- END PRE-REQUISITES FOR GOOGLE SIGN IN -->
+    <link
+      rel="stylesheet"
+      type="text/css"
+      href="{{ url_for('static', filename='styles.css') }}"
+    />
   </head>
 
   <body>
-    <!-- GOOGLE PLUS SIGN IN BUTTON-->
+    {% include 'nav.html' %}
+    <div class="container login-container">
+      <p><strong>Log in with Google</strong></p>
+      <div id="signinButton center">
+        <span
+          class="g-signin"
+          data-scope="openid email"
+          data-clientid="484060877573-phshiiobkaob7mlqo1uv7tej4j38bt8i.apps.googleusercontent.com"
+          data-redirecturi="postmessage"
+          data-accesstype="offline"
+          data-cookiepolicy="single_host_origin"
+          data-callback="signInCallback"
+          data-approvalprompt="force"
+        >
+        </span>
+      </div>
 
-    <div id="signinButton">
-      <span
-        class="g-signin"
-        data-scope="openid email"
-        data-clientid="484060877573-phshiiobkaob7mlqo1uv7tej4j38bt8i.apps.googleusercontent.com"
-        data-redirecturi="postmessage"
-        data-accesstype="offline"
-        data-cookiepolicy="single_host_origin"
-        data-callback="signInCallback"
-        data-approvalprompt="force"
-      >
-      </span>
-    </div>
-
-    <button class="btn btn-default" id="new-menu-item">
-      <span class="glyphicon glyphicon-glass" aria-hidden="true"></span> Login
-      with Facebook
+      <p><strong>Log in with Facebook</strong></p>
       <fb:login-button
         scope="public_profile,email"
         onlogin="sendTokenToServer();"
       >
         <a href="javascript:sendTokenToServer()">Login with Facebook</a>
       </fb:login-button>
-    </button>
 
-    <!--END GOOGLE PLUS SIGN IN BUTTON -->
-    <div id="result"></div>
-
+      <div id="result"></div>
+    </div>
     <script>
       function signInCallback(authResult) {
         if (authResult["code"]) {
@@ -69,9 +70,7 @@
           });
         }
       }
-    </script>
-    <!--FACEBOOK SIGN IN -->
-    <script>
+
       window.fbAsyncInit = function() {
         FB.init({
           appId: "393778474529667",
