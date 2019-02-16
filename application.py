@@ -178,7 +178,6 @@ def showCatalog():
     # Query all categories and the latest 10 items and render them on the catalog page
     categories = session.query(Category)
     items = session.query(Item).order_by(desc(Item.id)).limit(10)
-    print([item.name for item in items])
     picture = pictureExists()
     return render_template('catalog.html', categories=categories, items=items, hasLogin='email' in login_session, picture=picture)
 
@@ -186,6 +185,7 @@ def showCatalog():
 @app.route('/catalog/<categoryName>/')
 @app.route('/catalog/<categoryName>/items')
 def showCategory(categoryName):
+    # Query all categories and items from the specified category name and render them on the page
     categories = session.query(Category)
     category = categories.filter_by(name=categoryName).one()
 
@@ -209,7 +209,6 @@ def showItem(categoryName, itemName):
         return render_template('public-item.html', item=item, hasLogin='email' in login_session, picture=picture)
     else:
         return render_template('item.html', item=item, hasLogin='email' in login_session, picture=picture)
-
 
 
 @app.route('/catalog/<categoryName>/new', methods=['GET', 'POST'])
@@ -274,6 +273,7 @@ def deleteItem(categoryName, itemName):
 
 @app.route('/catalog.json')
 def catalogJSON():
+    # The API endpoint of the application where all the data about categories and items are stored.
     categories = session.query(Category)
     items = session.query(Item)
 
