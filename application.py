@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 from flask import Flask, render_template, request, redirect, url_for, jsonify, make_response, session as login_session
 from oauth2client.client import flow_from_clientsecrets, FlowExchangeError
-from sqlalchemy import create_engine
+from sqlalchemy import create_engine, desc
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.orm.exc import NoResultFound
 from database_setup import Base, Category, Item, User
@@ -13,8 +13,6 @@ import httplib2
 
 app = Flask(__name__)
 
-CLIENT_ID = json.loads(open('client_secrets.json', 'r').read())[
-    'web']['client_id']
 
 engine = create_engine('sqlite:///catalog.db')
 Base.metadata.bind = engine
@@ -113,7 +111,6 @@ def isPostRequest():
     """
     return request.method == 'POST'
 
-
 def makeResponse(responseString, responseCode):
     """
     makeResponse returns a response object.
@@ -143,16 +140,46 @@ def checkUserRequest():
     if request.args.get('state') != login_session['state']:
         return makeResponse('Invalid state parameter', 401)
 
+def createJSONRequest(url, requestType, index):
+    """
+    createJSONRequest returns a result of a request made to the specified URL.
 
+    createJSONRequest takes a url, request type and an index as parameters and sends an http request to the url with the specified request type and brings the desired data through the index number.
+    args:
+    url - a string that allows us to access a specific website on the internet.
+    requestType - a string that specifies the type of http request we want.
+    index - an integer that specifies the particular data we want returned from the http request
+
+    returns:
+    A specific result from an http request
+    """
+    h = httplib2.Http()
+    return h.request(url, requestType)[index]
+
+def serveOutput():
+    """
+    serveOutput returns an HTML string to be output in case of a successful login.
+
+    serveOutput creates a string to inform the user of a successful login.
+
+    returns:
+    An HTML string.
+    """
+    output = ''
+    output += '<h1>Welcome!</h1>'
+    output += '<img src="'
+    output += login_session['picture']
+    output += '" style="width:300px;height:300px; border-radius:150px;-webkit-border-radius:150px;-moz-border-radius:150px;">'
+    return output
 
 @app.route('/')
 @app.route('/catalog')
 def showCatalog():
+    # Query all categories and the latest 10 items and render them on the catalog page
     categories = session.query(Category)
-    items = session.query(Item)
-    
+    items = session.query(Item).order_by(desc(Item.id)).limit(10)
+    print([item.name for item in items])
     picture = pictureExists()
-
     return render_template('catalog.html', categories=categories, items=items, hasLogin='email' in login_session, picture=picture)
 
 
@@ -283,8 +310,8 @@ def gconnect():
     access_token = credentials.access_token
     url = ('https://www.googleapis.com/oauth2/v1/tokeninfo?access_token=%s' %
            access_token)
-    h = httplib2.Http()
-    result = json.loads(h.request(url, 'GET')[1])
+    # Create json GET request containing url and access token and store result of request in variable called result
+    result = json.loads(createJSONRequest(url, 'GET', 1))
 
     if result.get('error') is not None:
         return makeResponse(result.get('error'), 500)
@@ -294,7 +321,11 @@ def gconnect():
     if result['user_id'] != gplus_id:
         return makeResponse("Token's user ID doesn't match given user ID.", 401)
 
-    if result['issued_to'] != CLIENT_ID:
+        
+    client_id = json.loads(open('client_secrets.json', 'r').read())[
+    'web']['client_id']
+
+    if result['issued_to'] != client_id:
         return makeResponse("Token's client ID doesn't match app's.", 401)
 
     stored_credentials = login_session.get('credentials')
@@ -303,9 +334,6 @@ def gconnect():
     if stored_credentials is not None and gplus_id == stored_gplus_id:
         return makeResponse('Current user is already connected.', 200)
 
-    login_session['provider'] = 'google'
-    login_session['credentials'] = credentials.access_token
-    login_session['gplus_id'] = gplus_id
 
     userinfo_url = 'https://www.googleapis.com/oauth2/v1/userinfo'
     params = {'access_token': credentials.access_token, 'alt': 'json'}
@@ -315,21 +343,19 @@ def gconnect():
     login_session['picture'] = data['picture']
     login_session['email'] = data['email']
 
+    login_session['provider'] = 'google'
+    login_session['access_token'] = credentials.access_token
+    login_session['gplus_id'] = gplus_id
+
     user_id = getUserID(login_session['email'])
     if not user_id:
         user_id = createUser(login_session)
 
     login_session['user_id'] = user_id
 
-    output = ''
-    output += '<h1>Welcome!</h1>'
-    output += '<img src="'
-    output += login_session['picture']
-    output += '" style="width: 300px; height: 300px; border-radius: 150px; -webkit-border-radius: 150px; -moz-border-radius: 150px;"> '
-    
+    output = serveOutput()
+
     return output
-
-
 
 
 @app.route('/fbconnect', methods=['POST'])
@@ -338,43 +364,28 @@ def fbconnect():
 
     access_token = request.data
 
-
     app_id = json.loads(open('fb_client_secrets.json', 'r').read())[
         'web']['app_id']
-    app_secret = json.loads(
-        open('fb_client_secrets.json', 'r').read())['web']['app_secret']
+    app_secret = json.loads(open('fb_client_secrets.json', 'r').read())['web']['app_secret']
     url = 'https://graph.facebook.com/oauth/access_token?grant_type=fb_exchange_token&client_id=%s&client_secret=%s&fb_exchange_token=%s' % (
         app_id, app_secret, access_token)
-    h = httplib2.Http()
-    result = h.request(url, 'GET')[1]
+    result = createJSONRequest(url, 'GET', 1)
 
-
-    # Use token to get user info from API
-    userinfo_url = "https://graph.facebook.com/v2.8/me"
-    '''
-        Due to the formatting for the result from the server token exchange we have to
-        split the token first on commas and select the first index which gives us the key : value
-        for the server access token then we split it on colons to pull out the actual token value
-        and replace the remaining quotes with nothing so that it can be used directly in the graph
-        api calls
-    '''
     token = result.split(',')[0].split(':')[1].replace('"', '')
 
-    url = 'https://graph.facebook.com/v2.8/me?access_token=%s&fields=name,id,email' % token
-    h = httplib2.Http()
-    result = h.request(url, 'GET')[1]
+    url = 'https://graph.facebook.com/v2.8/me?access_token=%s&fields=id,email' % token
+    result = createJSONRequest(url, 'GET', 1)
     data = json.loads(result)
-    login_session['provider'] = 'facebook'
     login_session['email'] = data['email']
     login_session['facebook_id'] = data['id']
 
+    login_session['provider'] = 'facebook'
     # The token must be stored in the login_session in order to properly logout
     login_session['access_token'] = token
 
     # Get user picture
     url = 'https://graph.facebook.com/v2.8/me/picture?access_token=%s&redirect=0&height=200&width=200' % token
-    h = httplib2.Http()
-    result = h.request(url, 'GET')[1]
+    result = createJSONRequest(url, 'GET', 1)
     data = json.loads(result)
 
     login_session['picture'] = data["data"]["url"]
@@ -386,46 +397,37 @@ def fbconnect():
 
     login_session['user_id'] = user_id
 
-    output = ''
-    output += '<h1>Welcome!</h1>'
-    output += '<img src="'
-    output += login_session['picture']
-    output += '" style = "width: 300px; height: 300px;border-radius: 150px;-webkit-border-radius: 150px;-moz-border-radius: 150px;"> '
+    output = serveOutput()
 
     return output
 
 @app.route('/fbdisconnect')
 def fbdisconnect():
+    access_token = login_session['access_token']
+    if access_token is None:
+        return makeResponse('Current user not connected.', 401)
+
     facebook_id = login_session['facebook_id']
-    url = 'https://graph.facebook.com/%s/permissions' % facebook_id 
-    h = httplib2.Http()
-    result = h.request(url, 'DELETE')[1]
-    del login_session['email']
-    del login_session['picture']
-    del login_session['user_id']
-    del login_session['facebook_id']
-    del login_session['provider']
-    return "you have been logged out"
+
+    url = 'https://graph.facebook.com/%s/permissions?access_token=%s' % (facebook_id,access_token) 
+    
+    result = createJSONRequest(url, 'DELETE', 1)
+    if result[0] == True:
+        return makeResponse('Successfully disconnected.', 200)
+    else:
+        return makeResponse('Failed to revoke token for giver user.', 400)
 
 @app.route('/gdisconnect')
 def gdisconnect():
-    credentials = login_session.get('credentials')
-    if credentials is None:
+    access_token = login_session.get('access_token')
+    if access_token is None:
         return makeResponse('Current user not connected.', 401)
 
-    access_token = credentials
     url = 'https://accounts.google.com/o/oauth2/revoke?token=%s' % access_token
-    h = httplib2.Http()
-    result = h.request(url, 'GET')[0]
+    
+    result = createJSONRequest(url, 'GET', 0)
 
     if result['status'] == '200':
-        del login_session['credentials']
-        del login_session['gplus_id']
-        del login_session['user_id']
-        del login_session['email']
-        del login_session['picture']
-        del login_session['provider']
-
         return makeResponse('Successfully disconnected.', 200)
     else:
         return makeResponse('Failed to revoke token for giver user.', 400)
@@ -435,8 +437,17 @@ def disconnect():
     if 'provider' in login_session:
         if login_session['provider'] == 'google':
             gdisconnect()
+            del login_session['gplus_id']
         elif login_session['provider'] == 'facebook':
             fbdisconnect()
+            del login_session['facebook_id']
+
+        del login_session['provider']
+        del login_session['email']
+        del login_session['picture']
+        del login_session['user_id']
+        del login_session['access_token']
+
         return redirect(url_for('showCatalog'))
 
 if __name__ == '__main__':
