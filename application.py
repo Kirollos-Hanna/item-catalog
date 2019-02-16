@@ -13,12 +13,15 @@ import httplib2
 
 app = Flask(__name__)
 
-
+# Create a connection to the database
 engine = create_engine('sqlite:///catalog.db')
 Base.metadata.bind = engine
 
+# Create a session
 DBSession = sessionmaker(bind=engine)
 session = DBSession()
+
+# HELPER FUNCTIONS
 
 def createUser(login_session):
     """
@@ -79,8 +82,7 @@ def pictureExists():
     pictureExists assigns the picture key's value in the login session object to a picture string variable if it exists.
 
     returns:
-    The user id with the same email as the input argument.
-    Or, none if the user related to that email doesn't exist.
+    A string of the picture URL if it exists and and empty string if the URL doesn't exist.
     """
 
     picture = ''
@@ -172,6 +174,33 @@ def serveOutput():
     output += '" style="width:300px;height:300px; border-radius:150px;-webkit-border-radius:150px;-moz-border-radius:150px;">'
     return output
 
+def itemBelongsToUser(item):
+    """
+    itemBelongsToUser returns a boolean value of True if the current user isn't the one who created the provided item.
+
+    args:
+    item - a dictionary of an item in the database.
+
+    returns:
+    True if the item doesn't belong to the user and False otherwise.
+    """
+    user = getUserInfo(item.user_id)
+    return login_session['email'] != user.email
+
+def getSpecificItem(itemName):
+    """
+    getSpecificItem returns an item from the database that includes the same name as the provided item name parameter.
+
+    args:
+    itemName - a string that can identify a particular item in the database.
+
+    returns:
+    An item dictionary from the database.
+    """
+    return session.query(Item).filter_by(name=itemName).one()
+
+# ROUTES
+
 @app.route('/')
 @app.route('/catalog')
 def showCatalog():
@@ -216,7 +245,9 @@ def showItem(categoryName, itemName):
 def newItem(categoryName):
     if notLoggedIn():
         return redirect('/login')
+        
     if isPostRequest():
+        # Create a new item with all the data provided from the form
         category = session.query(Category).filter_by(
             name=request.form['category']).one()
         newItem = Item(name=request.form['name'],
@@ -227,6 +258,7 @@ def newItem(categoryName):
         session.commit()
         return redirect(url_for('showCategory', categoryName=categoryName))
     else:
+        # Render the new item page form
         return render_template('new-item.html', categoryName=categoryName, hasLogin='email' in login_session, picture=login_session['picture'])
 
 
@@ -235,12 +267,13 @@ def editItem(categoryName, itemName):
     if notLoggedIn():
         return redirect('/login')
     
-    item = session.query(Item).filter_by(name=itemName).one()
-    user = getUserInfo(item.user_id)
-    if notLoggedIn() or login_session['email'] != user.email:
+    item = getSpecificItem(itemName)
+    
+    if itemBelongsToUser(item):
         return redirect('/')
-
+    
     if isPostRequest():
+        # Edit all data belonging to item with the new data returned from the form
         category = session.query(Category).filter_by(
             name=request.form['category']).one()
         item.name = request.form['name']
@@ -250,6 +283,7 @@ def editItem(categoryName, itemName):
         session.commit()
         return redirect(url_for('showItem', categoryName=category.name, itemName=item.name))
     else:
+        # Render the edit item page form
         return render_template('edit-item.html', categoryName=categoryName, itemName=itemName, hasLogin='email' in login_session, picture=login_session['picture'])
 
 
@@ -257,17 +291,19 @@ def editItem(categoryName, itemName):
 def deleteItem(categoryName, itemName):
     if notLoggedIn():
         return redirect('/login')
-
-    item = session.query(Item).filter_by(name=itemName).one()
-    user = getUserInfo(item.user_id)
-    if notLoggedIn() or login_session['email'] != user.email:
-        return redirect('/')
     
+    item = getSpecificItem(itemName)
+    
+    if itemBelongsToUser(item):
+        return redirect('/')
+
     if isPostRequest():
+        # Delete the specified item from the database
         session.delete(item)
         session.commit()
         return redirect(url_for('showCatalog'))
     else:
+        # Render the delete item page form
         return render_template('delete-item.html', categoryName=categoryName, itemName=itemName, hasLogin='email' in login_session, picture=login_session['picture'])
 
 
@@ -434,6 +470,7 @@ def gdisconnect():
 
 @app.route('/disconnect')
 def disconnect():
+    # Check which provider the user is logged in from and delete all the necessary information from the login session
     if 'provider' in login_session:
         if login_session['provider'] == 'google':
             gdisconnect()
