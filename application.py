@@ -174,9 +174,9 @@ def serveOutput():
     output += '" style="width:300px;height:300px; border-radius:150px;-webkit-border-radius:150px;-moz-border-radius:150px;">'
     return output
 
-def itemBelongsToUser(item):
+def itemBelongsToOtherUser(item):
     """
-    itemBelongsToUser returns a boolean value of True if the current user isn't the one who created the provided item.
+    itemBelongsToOtherUser returns a boolean value of True if the current user isn't the one who created the provided item.
 
     args:
     item - a dictionary of an item in the database.
@@ -228,13 +228,12 @@ def showCategory(categoryName):
 @app.route('/catalog/<categoryName>/<itemName>')
 def showItem(categoryName, itemName):
     try:
-        item = session.query(Item).filter_by(name=itemName).one()
+        item = getSpecificItem(itemName)
     except:
         return redirect('/')
 
-    user = getUserInfo(item.user_id)
     picture = pictureExists()
-    if notLoggedIn() or login_session['email'] != user.email:
+    if notLoggedIn() or itemBelongsToOtherUser(item):
         return render_template('public-item.html', item=item, hasLogin='email' in login_session, picture=picture)
     else:
         return render_template('item.html', item=item, hasLogin='email' in login_session, picture=picture)
@@ -269,7 +268,7 @@ def editItem(categoryName, itemName):
     
     item = getSpecificItem(itemName)
     
-    if itemBelongsToUser(item):
+    if itemBelongsToOtherUser(item):
         return redirect('/')
     
     if isPostRequest():
@@ -294,7 +293,7 @@ def deleteItem(categoryName, itemName):
     
     item = getSpecificItem(itemName)
     
-    if itemBelongsToUser(item):
+    if itemBelongsToOtherUser(item):
         return redirect('/')
 
     if isPostRequest():
