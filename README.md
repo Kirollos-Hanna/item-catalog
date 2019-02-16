@@ -16,12 +16,8 @@ The program uses Python, Flask and SQLAlchemy to retrieve data from a database a
 - use the `python` or `python3` command with the application.py file from your command line. (i.e. `python application.py`)
 - The server will run on port 5000 by default on your local machine. (Use localhost:5000 to view the website)
 
-<!--
 ## How it works
 
-- The program first connects to the news database and creates a cursor.
-- It then performs three queries, namely:
-  1. Finding the three most popular articles.
-  2. Listing the most popular authors by article page views.
-  3. Finding the days where more than 1% of requests to the website led to errors.
-- The query results are then saved into strings and appended into the output.txt file. -->
+- The user can login using the login page using a Google or Facebook account.
+- Items can only be added to categories by a logged-in user.
+- The user can only modify or delete his/her current items.
