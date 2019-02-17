@@ -23,6 +23,15 @@
       </div>
       {% endblock %} {% block items %}
       <div class="items">
+        {% with messages = get_flashed_messages() %} {% if messages %}
+        <ul>
+          {% for message in messages %}
+          <li class="message">
+            <strong>{{ message }}</strong>
+          </li>
+          {% endfor %}
+        </ul>
+        {% endif %} {% endwith %}
         <h2>Latest Items</h2>
         {% for item in items %}
         <p>

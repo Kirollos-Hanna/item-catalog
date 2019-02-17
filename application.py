@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 from flask import Flask, render_template, request, redirect, url_for, jsonify
-from flask import make_response, session as login_session
+from flask import make_response, flash, session as login_session
 from oauth2client.client import flow_from_clientsecrets, FlowExchangeError
 from sqlalchemy import create_engine, desc
 from sqlalchemy.orm import sessionmaker
@@ -318,7 +318,9 @@ def showItem(categoryName, itemName):
     methods=['GET', 'POST']
 )
 def newItem(categoryName):
+    # Redirect the user to the login page if they aren't logged in
     if notLoggedIn():
+        flash("Please login to create new items")
         return redirect('/login')
 
     if isPostRequest():
@@ -347,12 +349,15 @@ def newItem(categoryName):
     methods=['GET', 'POST']
 )
 def editItem(categoryName, itemName):
+    # Redirect the user to the login page if they aren't logged in
     if notLoggedIn():
+        flash("Please login to edit your items")
         return redirect('/login')
 
     item = getSpecificItem(itemName)
 
     if itemBelongsToOtherUser(item):
+        flash("You aren't authorized to edit this item")
         return redirect('/')
 
     if isPostRequest():
@@ -378,6 +383,7 @@ def editItem(categoryName, itemName):
             'edit-item.html',
             categoryName=categoryName,
             itemName=itemName,
+            item=item,
             hasLogin='email' in login_session,
             picture=login_session['picture']
         )
@@ -388,12 +394,15 @@ def editItem(categoryName, itemName):
     methods=['GET', 'POST']
 )
 def deleteItem(categoryName, itemName):
+    # Redirect the user to the login page if they aren't logged in
     if notLoggedIn():
+        flash("Please login to delete your items")
         return redirect('/login')
 
     item = getSpecificItem(itemName)
 
     if itemBelongsToOtherUser(item):
+        flash("You aren't authorized to delete this item")
         return redirect('/')
 
     if isPostRequest():
@@ -415,7 +424,7 @@ def deleteItem(categoryName, itemName):
 @app.route('/catalog.json')
 def catalogJSON():
     # The API endpoint of the application
-    # where all the data about categories and items are stored.
+    # where all the data about categories and items are stored
     categories = session.query(Category)
     items = session.query(Item)
 
@@ -423,6 +432,15 @@ def catalogJSON():
     itemsJSON = [item.serialize for item in items]
 
     return jsonify(Category=categoriesJSON, Items=itemsJSON)
+
+
+@app.route('/catalog/<categoryName>/<itemName>/json')
+def itemJSON(categoryName, itemName):
+    # The API endpoint of the application
+    # where the data about specific items are stored
+    item = session.query(Item).filter_by(name=itemName).one()
+
+    return jsonify(Item=item.serialize)
 
 
 @app.route('/login')

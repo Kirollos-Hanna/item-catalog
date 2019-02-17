@@ -16,6 +16,15 @@
   <body>
     {% include 'nav.html' %}
     <div class="container login-container">
+      {% with messages = get_flashed_messages() %} {% if messages %}
+      <ul>
+        {% for message in messages %}
+        <li class="message">
+          <strong>{{ message }}</strong>
+        </li>
+        {% endfor %}
+      </ul>
+      {% endif %} {% endwith %}
       <p><strong>Log in with Google</strong></p>
       <div id="signinButton center">
         <span
