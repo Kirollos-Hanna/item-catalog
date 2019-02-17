@@ -4,10 +4,12 @@ The program uses Python, Flask and SQLAlchemy to retrieve data from a database a
 
 ## Requirements
 
+- if you're on windows, download [git bash](https://git-scm.com/downloads)
 - Python 3: [Download the latest version of Python here](https://www.python.org/downloads/)
+- Pip: [Download from here](https://pypi.org/project/pip/#files)
+- Flask: You must download pip in order to install flask. After you've installed pip, run the command `pip install Flask` using you command line. For more information visit this [link](http://flask.pocoo.org/).
 - SQLite: [Download from here](https://www.sqlite.org/download.html)
 - SQLAlchemy: [Download from here](https://www.sqlalchemy.org/download.html)
-- if you're on windows, download [git bash](https://git-scm.com/downloads)
 
 ## How to run
 
@@ -18,6 +20,11 @@ The program uses Python, Flask and SQLAlchemy to retrieve data from a database a
 
 ## How it works
 
-- The user can login using the login page using a Google or Facebook account.
+- The user can login from the login page using a Google or Facebook account.
 - Items can only be added to categories by a logged-in user.
 - The user can only modify or delete his/her current items.
+
+## JSON Endpoints
+
+- Data from the whole application can be retrieved using the following route `/catalog.json`
+- If you want to retrieve data about a single item you can use the route `/catalog/category/item/json` where `category` is the specific category of the item and `item` is the name of the item you want.
