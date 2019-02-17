@@ -30,7 +30,9 @@
           <input
             type="text"
             name="name"
+            {% block namePlaceholder %}
             placeholder="Enter a name for your item"
+            {% endblock %}
             required
           />
           <br /><br />
@@ -40,7 +42,7 @@
             cols="30"
             rows="5"
             placeholder="Write your description"
-          ></textarea>
+          >{% block descPlaceholder %}{% endblock %}</textarea>
           <br /><br />
           <label for="category">Category:</label>
           <select name="category">
