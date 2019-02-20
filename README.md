@@ -13,7 +13,7 @@ The program uses Python, Flask and SQLAlchemy to retrieve data from a database a
 
 ## How to run
 
-- Use git to clone this directory (https://github.com/Kirollos-Hanna/item-catalog)
+- Use git to clone this directory `git clone https://github.com/Kirollos-Hanna/item-catalog`
 - `cd` into the project directory.
 - use the `python` or `python3` command with the application.py file from your command line. (i.e. `python application.py`)
 - The server will run on port 5000 by default on your local machine. (Use localhost:5000 to view the website)
